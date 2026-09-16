@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated/create'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as SetSetIdIndexRouteImport } from './routes/set.$setId.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +41,32 @@ const AuthenticatedCreateRoute = AuthenticatedCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const SetSetIdIndexRoute = SetSetIdIndexRouteImport.update({
+  id: '/set/$setId/',
+  path: '/set/$setId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
   '/create': typeof AuthenticatedCreateRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/set/$setId/': typeof SetSetIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
   '/create': typeof AuthenticatedCreateRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/set/$setId': typeof SetSetIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +75,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/explore': typeof ExploreRoute
   '/_authenticated/create': typeof AuthenticatedCreateRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/set/$setId/': typeof SetSetIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/explore' | '/create'
+  fullPaths:
+    '/' | '/auth' | '/explore' | '/create' | '/dashboard' | '/set/$setId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/explore' | '/create'
+  to: '/' | '/auth' | '/explore' | '/create' | '/dashboard' | '/set/$setId'
   id:
     | '__root__'
     | '/'
@@ -72,6 +91,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/explore'
     | '/_authenticated/create'
+    | '/_authenticated/dashboard'
+    | '/set/$setId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -79,6 +100,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ExploreRoute: typeof ExploreRoute
+  SetSetIdIndexRoute: typeof SetSetIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -118,15 +140,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/set/$setId/': {
+      id: '/set/$setId/'
+      path: '/set/$setId'
+      fullPath: '/set/$setId/'
+      preLoaderRoute: typeof SetSetIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreateRoute: typeof AuthenticatedCreateRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreateRoute: AuthenticatedCreateRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -137,6 +175,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ExploreRoute: ExploreRoute,
+  SetSetIdIndexRoute: SetSetIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
