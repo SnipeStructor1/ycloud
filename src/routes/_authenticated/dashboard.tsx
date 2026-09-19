@@ -163,8 +163,8 @@ function Stat({
 }: {
   icon: typeof Flame;
   label: string;
-  value?: number;
-  accent?: boolean;
+  value: number | undefined;
+  accent?: boolean | undefined;
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
