@@ -16,6 +16,8 @@ import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated/create'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as SetSetIdIndexRouteImport } from './routes/set.$setId.index'
+import { Route as SetSetIdQuizRouteImport } from './routes/set.$setId.quiz'
+import { Route as SetSetIdStudyRouteImport } from './routes/set.$setId.study'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +53,16 @@ const SetSetIdIndexRoute = SetSetIdIndexRouteImport.update({
   path: '/set/$setId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SetSetIdQuizRoute = SetSetIdQuizRouteImport.update({
+  id: '/set/$setId/quiz',
+  path: '/set/$setId/quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetSetIdStudyRoute = SetSetIdStudyRouteImport.update({
+  id: '/set/$setId/study',
+  path: '/set/$setId/study',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -58,6 +70,8 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/create': typeof AuthenticatedCreateRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/set/$setId/quiz': typeof SetSetIdQuizRoute
+  '/set/$setId/study': typeof SetSetIdStudyRoute
   '/set/$setId/': typeof SetSetIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +80,8 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/create': typeof AuthenticatedCreateRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/set/$setId/quiz': typeof SetSetIdQuizRoute
+  '/set/$setId/study': typeof SetSetIdStudyRoute
   '/set/$setId': typeof SetSetIdIndexRoute
 }
 export interface FileRoutesById {
@@ -76,14 +92,31 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/_authenticated/create': typeof AuthenticatedCreateRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/set/$setId/quiz': typeof SetSetIdQuizRoute
+  '/set/$setId/study': typeof SetSetIdStudyRoute
   '/set/$setId/': typeof SetSetIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/explore' | '/create' | '/dashboard' | '/set/$setId/'
+    | '/'
+    | '/auth'
+    | '/explore'
+    | '/create'
+    | '/dashboard'
+    | '/set/$setId/quiz'
+    | '/set/$setId/study'
+    | '/set/$setId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/explore' | '/create' | '/dashboard' | '/set/$setId'
+  to:
+    | '/'
+    | '/auth'
+    | '/explore'
+    | '/create'
+    | '/dashboard'
+    | '/set/$setId/quiz'
+    | '/set/$setId/study'
+    | '/set/$setId'
   id:
     | '__root__'
     | '/'
@@ -92,6 +125,8 @@ export interface FileRouteTypes {
     | '/explore'
     | '/_authenticated/create'
     | '/_authenticated/dashboard'
+    | '/set/$setId/quiz'
+    | '/set/$setId/study'
     | '/set/$setId/'
   fileRoutesById: FileRoutesById
 }
@@ -100,6 +135,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ExploreRoute: typeof ExploreRoute
+  SetSetIdQuizRoute: typeof SetSetIdQuizRoute
+  SetSetIdStudyRoute: typeof SetSetIdStudyRoute
   SetSetIdIndexRoute: typeof SetSetIdIndexRoute
 }
 
@@ -154,6 +191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetSetIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/set/$setId/quiz': {
+      id: '/set/$setId/quiz'
+      path: '/set/$setId/quiz'
+      fullPath: '/set/$setId/quiz'
+      preLoaderRoute: typeof SetSetIdQuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/set/$setId/study': {
+      id: '/set/$setId/study'
+      path: '/set/$setId/study'
+      fullPath: '/set/$setId/study'
+      preLoaderRoute: typeof SetSetIdStudyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -175,6 +226,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ExploreRoute: ExploreRoute,
+  SetSetIdQuizRoute: SetSetIdQuizRoute,
+  SetSetIdStudyRoute: SetSetIdStudyRoute,
   SetSetIdIndexRoute: SetSetIdIndexRoute,
 }
 export const routeTree = rootRouteImport
