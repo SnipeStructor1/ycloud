@@ -76,7 +76,10 @@ function SetDetail() {
       .from("study_sets")
       .update({ visibility: next ? "public" : "private" })
       .eq("id", setId);
-    if (error) return toast.error("Could not change visibility.");
+    if (error) {
+      toast.error("Could not change visibility.");
+      return;
+    }
     toast.success(next ? "Set is now public" : "Set is now private");
     queryClient.invalidateQueries({ queryKey: ["set", setId] });
   }
@@ -126,7 +129,10 @@ function SetDetail() {
   async function deleteSet() {
     if (!confirm("Delete this set and all of its cards?")) return;
     const { error } = await supabase.from("study_sets").delete().eq("id", setId);
-    if (error) return toast.error("Could not delete this set.");
+    if (error) {
+      toast.error("Could not delete this set.");
+      return;
+    }
     toast.success("Set deleted");
     navigate({ to: "/dashboard" });
   }
