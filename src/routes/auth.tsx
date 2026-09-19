@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { getMfaState, verifyMfaCode } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,12 +32,27 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+
+  const finishAuthentication = useCallback(async () => {
+    const mfa = await getMfaState();
+    if (mfa.required && mfa.factor) {
+      setMfaFactorId(mfa.factor.id);
+      return;
+    }
+    navigate({ to: "/dashboard", replace: true });
+  }, [navigate]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!error && data.session) {
+        finishAuthentication().catch((err) => {
+          toast.error(err instanceof Error ? err.message : "Could not verify your account.");
+        });
+      }
     });
-  }, [navigate]);
+  }, [finishAuthentication]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,11 +72,14 @@ function AuthPage() {
           setSent(true);
           return;
         }
-        navigate({ to: "/dashboard" });
+        await finishAuthentication();
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
         if (error) throw error;
-        navigate({ to: "/dashboard" });
+        await finishAuthentication();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -70,18 +88,31 @@ function AuthPage() {
     }
   }
 
+  async function handleMfaSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!mfaFactorId) return;
+    setBusy(true);
+    try {
+      await verifyMfaCode(mfaFactorId, mfaCode.replace(/\s/g, ""));
+      await finishAuthentication();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Invalid authentication code.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleGoogle() {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
-    if (result.error) {
+    if (error) {
       setBusy(false);
       toast.error("Google sign-in failed. Please try again.");
       return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/dashboard" });
   }
 
   return (
@@ -91,7 +122,48 @@ function AuthPage() {
       </div>
 
       <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-black/30 sm:p-8">
-        {sent ? (
+        {mfaFactorId ? (
+          <form onSubmit={handleMfaSubmit} className="space-y-4">
+            <h1 className="text-2xl font-bold">Two-factor authentication</h1>
+            <p className="text-sm text-muted-foreground">
+              Enter the 6-digit code from your authenticator app.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="mfa-code">Authentication code</Label>
+              <Input
+                id="mfa-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9 ]{6,8}"
+                maxLength={8}
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value)}
+                placeholder="123456"
+                required
+                autoFocus
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={busy || mfaCode.replace(/\s/g, "").length < 6}
+            >
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Verify code
+            </Button>
+            <button
+              type="button"
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setMfaFactorId(null);
+                setMfaCode("");
+                supabase.auth.signOut();
+              }}
+            >
+              Use a different account
+            </button>
+          </form>
+        ) : sent ? (
           <div className="text-center">
             <h1 className="text-2xl font-bold">Check your inbox</h1>
             <p className="mt-3 text-sm text-muted-foreground">

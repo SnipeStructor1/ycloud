@@ -58,18 +58,6 @@ Build a comprehensive, production-ready web application called "yLearn" tailored
 
  app is instantly testable.
 
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://ycloud.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/2773029a-e1b1-4251-9d12-5f1cf23ad499).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
@@ -80,3 +68,49 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Architecture
+
+The app runs as one Cloudflare Worker. TanStack Start provides the React
+frontend, SSR and server functions; Supabase provides authentication and data;
+AI calls stay server-side in `src/lib/ai-gateway.server.ts`.
+
+Important application code is organized as:
+
+- `src/routes`: pages and route guards
+- `src/components`: reusable UI
+- `src/lib/auth.ts`: login MFA checks and TOTP verification
+- `src/integrations/supabase`: the only Supabase client/middleware layer
+- `src/lib/*.server.ts`: Worker-only integrations and secrets
+
+There is no Pages deployment in this setup. Pages would split the frontend
+from SSR and server functions and make the auth flow harder to reason about.
+
+## Deploy to Cloudflare Workers
+
+This project uses TanStack Start's Cloudflare Workers runtime. Configure the
+following production secrets before deploying:
+
+```sh
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_PUBLISHABLE_KEY
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+npx wrangler secret put AI_API_KEY
+```
+
+The client bundle also needs these public build-time variables:
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Set them in the
+Cloudflare build environment (or in an untracked `.env.production` file when
+deploying locally). They are intentionally public; keep
+`SUPABASE_SERVICE_ROLE_KEY` and `AI_API_KEY` server-only. Set `AI_BASE_URL`
+and `AI_MODEL` when using an OpenAI-compatible provider other than the defaults.
+
+Then deploy with:
+
+```sh
+npm run deploy
+```
+
+`wrangler.jsonc` points Cloudflare at the custom `src/server.ts` entrypoint
+and enables the Node.js compatibility layer required by the server-side
+dependencies. Never commit secret values to the repository.
