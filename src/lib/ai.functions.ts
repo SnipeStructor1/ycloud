@@ -64,12 +64,12 @@ export const generateStudySet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => GenerateInput.parse(input))
   .handler(async ({ data }): Promise<GeneratedSet> => {
-    const { createLovableAiGatewayProvider, requireLovableApiKey, CHAT_MODEL } = await import(
+    const { createAiProvider, requireAiApiKey, CHAT_MODEL } = await import(
       "./ai-gateway.server"
     );
     const { streamText } = await import("ai");
 
-    const gateway = createLovableAiGatewayProvider(requireLovableApiKey());
+    const gateway = createAiProvider(requireAiApiKey());
 
     const instruction = `Produce a JSON object shaped exactly like:
 {"title": string, "subject": string, "description": string, "summary": string[], "cards": [{"front": string, "back": string}]}`;
@@ -137,11 +137,11 @@ export const generateQuiz = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }): Promise<QuizQuestion[]> => {
-    const { createLovableAiGatewayProvider, requireLovableApiKey, CHAT_MODEL } = await import(
+    const { createAiProvider, requireAiApiKey, CHAT_MODEL } = await import(
       "./ai-gateway.server"
     );
     const { streamText } = await import("ai");
-    const gateway = createLovableAiGatewayProvider(requireLovableApiKey());
+    const gateway = createAiProvider(requireAiApiKey());
 
     const cards = data.cards.slice(0, 20);
     const result = streamText({
@@ -203,11 +203,11 @@ export const askTutor = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }): Promise<string> => {
-    const { createLovableAiGatewayProvider, requireLovableApiKey, CHAT_MODEL } = await import(
+    const { createAiProvider, requireAiApiKey, CHAT_MODEL } = await import(
       "./ai-gateway.server"
     );
     const { streamText } = await import("ai");
-    const gateway = createLovableAiGatewayProvider(requireLovableApiKey());
+    const gateway = createAiProvider(requireAiApiKey());
 
     const setTitle = sanitizeField(data.setTitle, 200);
     const cardFront = data.cardFront ? sanitizeField(data.cardFront, 500) : undefined;
